@@ -8,13 +8,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/shkiperko0/auth-go-ms/delivery/http"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"eam-auth-go-ms/delivery/http"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 	userIter := iteractor.newUserIteractor(userRepo)
 	jwtIter := iteractor.newJwtIteractor(userRepo)
 	authUC := usecases.newAuthUseCase(jwtIter, userIter)
-	userUC := usecases.newUserUseCase(jwtIter, userIter)
+	//userUC := usecases.newUserUseCase(jwtIter, userIter)
 
 	http.newCommonHTTPHandler(e)
 	http.newAuthHTTPHandler(e, authUC, userUC)
