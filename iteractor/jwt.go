@@ -2,10 +2,11 @@ package iteractor
 
 import (
 	//"encoding/json"
-	"eam-auth-go-ms/models"
-	"eam-auth-go-ms/repositories"
 	"errors"
 	"fmt"
+
+	"github.com/shkiperko0/auth-go-ms/models"
+	"github.com/shkiperko0/auth-go-ms/repositories"
 
 	"github.com/golang-jwt/jwt"
 )

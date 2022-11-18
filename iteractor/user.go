@@ -1,7 +1,7 @@
 package iteractor
 
 import (
-	"eam-auth-go-ms/repositories"
+	"github.com/shkiperko0/auth-go-ms/repositories"
 )
 
 type UserIteractor struct {

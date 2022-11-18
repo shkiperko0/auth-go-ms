@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	// "eam-auth-go-ms/models"
+	// "github.com/shkiperko0/auth-go-ms/models"
 	// "errors"
 	// "fmt"
 

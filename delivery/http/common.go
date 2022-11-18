@@ -1,8 +1,9 @@
 package http
 
 import (
-	"eam-auth-go-ms/common"
 	"net/http"
+
+	"github.com/shkiperko0/auth-go-ms/common"
 
 	"github.com/labstack/echo/v4"
 )

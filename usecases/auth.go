@@ -1,7 +1,7 @@
 package usecases
 
 import (
-	"eam-auth-go-ms/iteractor"
+	"github.com/shkiperko0/auth-go-ms/iteractor"
 )
 
 type IAuthUseCase interface {

@@ -1,4 +1,4 @@
-module eam-auth-go-ms
+module github.com/shkiperko0/auth-go-ms
 
 go 1.18
 

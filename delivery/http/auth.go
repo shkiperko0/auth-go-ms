@@ -1,9 +1,10 @@
 package http
 
 import (
-	"eam-auth-go-ms/common"
-	"eam-auth-go-ms/usecases"
 	"net/http"
+
+	"github.com/shkiperko0/auth-go-ms/common"
+	"github.com/shkiperko0/auth-go-ms/usecases"
 
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/codes"
