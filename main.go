@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 	"os"
 
 	"github.com/labstack/echo/v4"
@@ -15,38 +14,13 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"eam-auth-go-ms/xarv"
+	"eam-auth-go-ms/delivery/http"
 )
 
-func CORS(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		res := c.Response()
-		req := c.Request()
-		fmt.Println(req.Method, " ", req.URL.Path, " ", req.Host, " ", c.Request().Header.Get("Origin"))
-
-		if c.Request().Method == "OPTIONS" {
-			//origin := c.Request().Header.Get("Origin") 1231
-			//res.Header().Set("Access-Control-Allow-Origin", origin)
-			res.Header().Set("Access-Control-Allow-Origin", "*")
-			res.Header().Set("Access-Control-Allow-Methods" /*entry.Method+*/, "GET,HEAD,PUT,PATCH,POST,DELETE")
-			res.Header().Set("Access-Control-Allow-Headers", "*")
-			res.WriteHeader(http.StatusNoContent)
-			return nil
-			//} else if len(res.Header().Get("Access-Control-Allow-Origin")) < 1 {
-			//origin := c.Request().Header.Get("Origin")
-			//res.Header().Set("Access-Control-Allow-Origin", origin)
-		}
-
-		//c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-		return next(c)
-	}
-}
-
 func main() {
-	// Init echo server
 	e := echo.New()
 
-	e.Use(CORS)
+	e.Use(http.CORS_Middleware)
 	e.HideBanner = true
 
 	// Init redis
@@ -74,8 +48,14 @@ func main() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", dbHost, dbUser, dbPassword, dbName, dbPort)
 	db, err := gorm.Open(postgres.Open(dsn), nil)
 
-	authServerAddress := os.Getenv("AUTH_SERVER")
-	xarv.NewProxyHttpHandler(db, e, authServerAddress)
+	userRepo := repositories.newUserRepository(db)
+	userIter := iteractor.newUserIteractor(userRepo)
+	jwtIter := iteractor.newJwtIteractor(userRepo)
+	authUC := usecases.newAuthUseCase(jwtIter, userIter)
+	userUC := usecases.newUserUseCase(jwtIter, userIter)
+
+	http.newCommonHTTPHandler(e)
+	http.newAuthHTTPHandler(e, authUC, userUC)
 
 	if err != nil {
 		log.Fatal(err)
