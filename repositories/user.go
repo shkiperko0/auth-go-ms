@@ -1,12 +1,15 @@
 package repositories
 
 import (
-	// "github.com/shkiperko0/auth-go-ms/models"
-	// "errors"
+	"errors"
+
+	"github.com/shkiperko0/auth-go-ms/models"
+
 	// "fmt"
 
-	// "google.golang.org/grpc/codes"
-	// "google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	// "gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -20,7 +23,7 @@ type IUserRepository interface {
 	// ListIds() (*[]uint, error)
 	// Create(user *models.User) error
 	// Update(user *models.User) error
-	// GetById(id uint) (*models.User, error)
+	GetById(id uint) (*models.User, error)
 	// GetByAlias(alias string, org uint) (*models.User, error)
 	// GetByEmail(email string, organizationId uint) (*models.User, error)
 	// GetByExtraKeyValue(organizationId uint, key, value string) (*models.User, error)
@@ -30,8 +33,24 @@ type IUserRepository interface {
 	// Delete(id uint64) error
 }
 
+func (r *UserRepository) GetById(id uint) (*models.User, error) {
+	var item *models.User
+	res := r.DB.First(&item, id)
+	if res.Error != nil && errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		return nil, status.Errorf(codes.NotFound, "user.userNotFound")
+	}
+
+	return item, res.Error
+}
+
 type UserRepository struct {
 	DB *gorm.DB
+}
+
+func NewUserRepository(DB *gorm.DB) IUserRepository {
+	return &UserRepository{
+		DB: DB,
+	}
 }
 
 // func (r *UserRepository) Delete(id uint64) error {
@@ -85,16 +104,6 @@ type UserRepository struct {
 // 	return item, res.Error
 // }
 
-// func (r *UserRepository) GetById(id uint) (*models.User, error) {
-// 	var item *models.User
-// 	res := r.DB.First(&item, id)
-// 	if res.Error != nil && errors.Is(res.Error, gorm.ErrRecordNotFound) {
-// 		return nil, status.Errorf(codes.NotFound, "user.userNotFound")
-// 	}
-
-// 	return item, res.Error
-// }
-
 // func (r *UserRepository) GetUserByField(organizationId uint, field string, value string) (*models.User, error) {
 // 	var user models.User
 
@@ -106,9 +115,3 @@ type UserRepository struct {
 
 // 	return &user, res.Error
 // }
-
-func newUserRepository(DB *gorm.DB) IUserRepository {
-	return &UserRepository{
-		DB: DB,
-	}
-}

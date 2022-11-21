@@ -9,6 +9,10 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/shkiperko0/auth-go-ms/delivery/http"
+	"github.com/shkiperko0/auth-go-ms/handlers"
+	"github.com/shkiperko0/auth-go-ms/interactor"
+	"github.com/shkiperko0/auth-go-ms/repositories"
+	"github.com/shkiperko0/auth-go-ms/usecases"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -48,14 +52,17 @@ func main() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", dbHost, dbUser, dbPassword, dbName, dbPort)
 	db, err := gorm.Open(postgres.Open(dsn), nil)
 
-	userRepo := repositories.newUserRepository(db)
-	userIter := iteractor.newUserIteractor(userRepo)
-	jwtIter := iteractor.newJwtIteractor(userRepo)
-	authUC := usecases.newAuthUseCase(jwtIter, userIter)
-	//userUC := usecases.newUserUseCase(jwtIter, userIter)
+	userRepo := repositories.NewUserRepository(db)
+	userIter := interactor.NewUserInteractor(userRepo)
+	jwtIter := interactor.NewJwtInteractor(userRepo)
+	pwdIter := interactor.NewPasswordInteractor()
 
-	http.newCommonHTTPHandler(e)
-	http.newAuthHTTPHandler(e, authUC, userUC)
+	authProvider := handlers.NewAuthProvider(userIter, pwdIter)
+	authUC := usecases.NewAuthUseCase(jwtIter, userIter, authProvider)
+	userUC := usecases.NewUserUseCase(jwtIter, userIter)
+
+	http.NewCommonHTTPHandler(e)
+	http.NewAuthHTTPHandler(e, authUC, userUC)
 
 	if err != nil {
 		log.Fatal(err)

@@ -10,7 +10,7 @@ import (
 
 type CommonHTTPHandler struct{}
 
-func newCommonHTTPHandler(e *echo.Echo) {
+func NewCommonHTTPHandler(e *echo.Echo) {
 	CommonHTTPHandler := CommonHTTPHandler{}
 
 	e.GET(common.API_VER_NO+"/health", CommonHTTPHandler.Health)

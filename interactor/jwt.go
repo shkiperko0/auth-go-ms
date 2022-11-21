@@ -1,4 +1,4 @@
-package iteractor
+package interactor
 
 import (
 	//"encoding/json"
@@ -15,8 +15,22 @@ const TK_Ver1 = "v1"
 const TK_ASecret_Only_v1 = "keklol no secrets got iter guy (access man)"
 const TK_RSecret_Only_v1 = "keklol no secrets got iter guy (refresh man)"
 
-type JwtIteractor struct {
-	UserRepository repositories.UserRepository
+type IJwtInteractor interface {
+	GetTokens(user_id uint) (*models.JwtTokens, error)
+	SignRefresh(data models.RefreshJwtToken) (string, error)
+	SignAccess(data models.AccessJwtToken) (string, error)
+	VerifyRefresh(tokenString string) (*models.RefreshJwtToken, error)
+	VerifyAccess(tokenString string) (*models.AccessJwtToken, error)
+}
+
+type JwtInteractor struct {
+	UserRepo repositories.IUserRepository
+}
+
+func NewJwtInteractor(UserRepo repositories.IUserRepository) IJwtInteractor {
+	return &JwtInteractor{
+		UserRepo: UserRepo,
+	}
 }
 
 /*
@@ -38,9 +52,9 @@ const (
 	ERR_VerifyFailed = "jwt.verify.failed"
 )
 
-func (iter *JwtIteractor) GetTokens(user_id uint) (*models.JwtTokens, error) {
+func (iter *JwtInteractor) GetTokens(user_id uint) (*models.JwtTokens, error) {
 
-	user, err := iter.UserRepository.GetById(user_id)
+	user, err := iter.UserRepo.GetById(user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +93,7 @@ func (iter *JwtIteractor) GetTokens(user_id uint) (*models.JwtTokens, error) {
 	return data, err
 }
 
-func (iter *JwtIteractor) SignRefresh(data models.RefreshJwtToken) (string, error) {
+func (iter *JwtInteractor) SignRefresh(data models.RefreshJwtToken) (string, error) {
 
 	payload := jwt.MapClaims{
 		FL_ID:        data.ID,
@@ -94,7 +108,7 @@ func (iter *JwtIteractor) SignRefresh(data models.RefreshJwtToken) (string, erro
 	return token.SignedString([]byte(TK_RSecret_Only_v1))
 }
 
-func (iter *JwtIteractor) SignAccess(data models.AccessJwtToken) (string, error) {
+func (iter *JwtInteractor) SignAccess(data models.AccessJwtToken) (string, error) {
 	payload := jwt.MapClaims{
 		FL_ID:        data.ID,
 		FL_SessionID: data.SessionID,
@@ -108,7 +122,7 @@ func (iter *JwtIteractor) SignAccess(data models.AccessJwtToken) (string, error)
 	return token.SignedString([]byte(TK_ASecret_Only_v1))
 }
 
-func (iter *JwtIteractor) VerifyRefresh(tokenString string) (*models.RefreshJwtToken, error) {
+func (iter *JwtInteractor) VerifyRefresh(tokenString string) (*models.RefreshJwtToken, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -167,7 +181,7 @@ func (iter *JwtIteractor) VerifyRefresh(tokenString string) (*models.RefreshJwtT
 	return nil, err
 }
 
-func (iter *JwtIteractor) VerifyAccess(tokenString string) (*models.AccessJwtToken, error) {
+func (iter *JwtInteractor) VerifyAccess(tokenString string) (*models.AccessJwtToken, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

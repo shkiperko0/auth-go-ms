@@ -4,79 +4,48 @@ import (
 	"net/http"
 
 	"github.com/shkiperko0/auth-go-ms/common"
+	"github.com/shkiperko0/auth-go-ms/models/dto"
 	"github.com/shkiperko0/auth-go-ms/usecases"
 
 	"github.com/labstack/echo/v4"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type AuthHTTPHandler struct {
-	AuthUC usecases.AuthUseCase
-	UserUC usecases.UserUseCase
-}
-
-type UserRegisterModel struct {
-	NickName  string
-	Email     string
-	Password  string
-	PromoCode *string
-	ReffID    *string
-}
-
-type UserLoginModel struct {
-	NickName *string
-	Email    *string
-	Password string
+	AuthUC usecases.IAuthUseCase
+	UserUC usecases.IUserUseCase
 }
 
 func (handler *AuthHTTPHandler) Login(c echo.Context) error {
-	var model UserLoginModel
+	var model dto.UserLoginModel
 	err := c.Bind(&model)
 	if err != nil {
 		return err
 	}
 
-	data, err := handler.AuthUC.Login()
+	user, err := handler.AuthUC.Login(&model)
 	if err != nil {
-		return status.Errorf(codes.NotFound, err.Error())
+		return err
 	}
 
-	return c.JSON(http.StatusOK, data)
+	return c.JSON(http.StatusOK, user)
 }
 
-// func (handler *AuthHTTPHandler) Register(c echo.Context) error {
-// 	var model UserRegisterModel
-// 	err := c.Bind(&model)
-// 	if err != nil {
-// 		return err
-// 	}
+func (h *AuthHTTPHandler) Register(c echo.Context) error {
+	var model dto.UserRegisterModel
+	err := c.Bind(&model)
+	if err != nil {
+		return err
+	}
 
-// 	user, err := h.userUC.Register(model.Type, &model)
-// 	if err != nil {
-// 		return err
-// 	}
+	user, err := h.AuthUC.Register(&model)
+	if err != nil {
+		return err
+	}
 
-// 	res := &pb.RegisterResp{}
+	return c.JSON(http.StatusOK, user)
+}
 
-// 	if user.Extra != nil {
-// 		extraString, err := user.Extra.Value()
-
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		err = json.Unmarshal([]byte((extraString).(string)), &res)
-
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	return c.JSON(http.StatusOK, res)
-// }
-
-func newAuthHTTPHandler(e *echo.Echo, AuthUC usecases.AuthUseCase, UserUC usecases.UserUseCase) {
+func NewAuthHTTPHandler(e *echo.Echo, AuthUC usecases.IAuthUseCase, UserUC usecases.IUserUseCase) {
 	handler := AuthHTTPHandler{
 		AuthUC: AuthUC,
 		UserUC: UserUC,

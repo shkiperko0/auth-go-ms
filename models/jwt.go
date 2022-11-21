@@ -16,6 +16,13 @@ type AccessJwtToken struct {
 	Version   string
 }
 
+type Token struct {
+	ID           string
+	UserID       uint
+	AccessToken  string
+	RefreshToken string
+}
+
 type JwtTokensData struct {
 	RefreshToken RefreshJwtToken
 	AccessToken  AccessJwtToken
